@@ -7,7 +7,7 @@ enum { shape_blocks = 4 };
 enum { block_coords = 2 };
 
 struct figure_shape {
-    char blocks[shape_blocks][block_coords];
+    signed char blocks[shape_blocks][block_coords];
     enum shape_type type;
     int color;
 };

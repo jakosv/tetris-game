@@ -65,15 +65,15 @@ void rotate_figure_shape(figure_shape *shape)
 void draw_figure_shape(int x, int y, char ch, const figure_shape *shape)
 {
     int i;
+    if (!work_bw)
+        attrset(COLOR_PAIR(shape->color));
     for (i = 0; i < shape_blocks; i++) {
         int dx, dy;
         dx = shape->blocks[i][0];
         dy = shape->blocks[i][1];
         move(y + dy, x + dx);
-        if (!work_bw)
-            attrset(COLOR_PAIR(shape->color));
         addch(ch);
-        if (!work_bw)
-            attrset(COLOR_PAIR(0));
     }
+    if (!work_bw)
+        attrset(COLOR_PAIR(0));
 }
