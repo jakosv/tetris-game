@@ -8,7 +8,7 @@
 
 
 enum { fwidth = 19, fheight = 22, game_field_width = 12 };
-enum { fborder = '#', fblock = '#', fempty = ' ', fshadow = 'o' };
+enum { fborder = '#', fblock = '#', fempty = ' ', fshadow = '.' };
 enum { figure_start_x = game_field_width / 2, figure_start_y = 1 };
 enum { next_figures_count = 3 };
 

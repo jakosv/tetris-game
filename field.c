@@ -28,7 +28,6 @@ static int calculate_shadow_center_y(const field *fld)
         }
 }
 
-
 static void add_player_figure(field *fld)
 {
     figure *player_figure;
@@ -128,7 +127,7 @@ void hide_figure(const field *fld)
     draw_player_figure(fld, fempty);
 }
 
-static void move_player_figure_to_field(field *fld)
+static void save_player_figure(field *fld)
 {
     int i;
     figure *player_figure;
@@ -146,12 +145,6 @@ void update_player_figure(field *fld)
 {
     add_player_figure(fld);
     add_next_figure(fld->next_figures);
-}
-
-static void save_player_figure(field *fld)
-{
-    move_player_figure_to_field(fld);
-    free(fld->figure->shape);
 }
 
 static int check_figure_collision(const field *fld, int *x, int *y)
@@ -188,6 +181,7 @@ void move_figure(field *fld, int dx, int dy)
         move_player_figure(fig, -dx, -dy);
         if (dx == 0) {
             save_player_figure(fld);
+            free(fld->figure->shape);
             update_player_figure(fld);
             draw_field(fld);
         }
@@ -235,6 +229,7 @@ void force_figure_down(field *fld)
     hide_figure(fld); 
     fig->center_y = fig->shadow_center_y;
     save_player_figure(fld);
+    free(fld->figure->shape);
     update_player_figure(fld);
     show_figure(fld);
     draw_field(fld);

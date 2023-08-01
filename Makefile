@@ -1,5 +1,5 @@
 PROG = tetris
-CFLAGS = -Wall -g -ansi  -pedantic -I/usr/local/include
+CFLAGS = -Wall -g -ansi  -pedantic
 LDFLAGS = -lncurses
 OBJMODULES = tetris.o field.o figure_shape.o figures_queue.o time_utils.o\
 			 colors.o

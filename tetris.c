@@ -151,8 +151,11 @@ void start_tetris(tetris *game)
             if (check_figure_time(game))
                 move_figure(&game->field, 0, 1);
         }
-        if (is_game_over(game))
+        if (is_game_over(game)) {
+            timeout(-1);
+            key = getch();
             break;
+        }
         full_rows = get_full_rows(game, &full_rows_cnt);
         if (full_rows_cnt > 0) {
             remove_full_rows(full_rows, full_rows_cnt, game);
@@ -162,7 +165,5 @@ void start_tetris(tetris *game)
         }
     }
     destroy_field(&game->field);
-    timeout(-1);
-    key = getch();
     endwin();
 }
