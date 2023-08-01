@@ -1,7 +1,8 @@
-#include "figures_queue.h"
-#include "figure.h"
-
 #include <stdlib.h>
+
+#include "figures_queue.h"
+#include "figure_shape.h"
+
 
 void fqueue_init(fqueue *queue)
 {

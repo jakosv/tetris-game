@@ -9,7 +9,7 @@
 
 
 enum { next_figure_text_y = 2 };
-enum { next_figure_y = 5, next_figures_padding = 3 };
+enum { next_figure_y = 4, next_figures_padding = 3 };
 
 static int calculate_shadow_center_y(const field *fld)
 {
@@ -242,7 +242,7 @@ static void draw_next_figures(const field *fld)
 
     mvprintw(fld->y + next_figure_text_y, 
              fld->x + game_field_width + 1, "Next");
-    row = next_figure_y;
+    row = next_figure_y + fld->y;
     for (tmp = fld->next_figures->first; tmp; tmp = tmp->next) {
         int x;
         x = fld->x + game_field_width + (fwidth - game_field_width) / 2;
