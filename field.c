@@ -196,23 +196,26 @@ void move_figure(field *fld, int dx, int dy)
 
 void rotate_figure(field *fld)
 {
-    int i, collision_x, collision_y;
+    int i, collision_x, collision_y, saved_x, saved_y;
     figure *player_figure;
     figure_shape shape;
 
     player_figure = fld->figure;
     shape = *player_figure->shape;
+    saved_x = player_figure->center_x;
+    saved_y = player_figure->center_y;
+
     if (shape.type == st_O)
         return;
     rotate_figure_shape(player_figure->shape);    
-    for (i = 0; i < shape_blocks - 1; i++) {
+    for (i = 0; i < shape_blocks; i++) {
         if (check_figure_collision(fld, &collision_x, &collision_y)) {
             int dx, dy;
             dx = collision_x - fld->figure->center_x;
             dy = collision_y - fld->figure->center_y;
             if (dx != 0)
                 dx /= abs(dx);
-            else if (dy != 0)
+            if (dy != 0)
                 dy /= abs(dy);
             move_player_figure(fld->figure, -dx, -dy);
         } else {
@@ -221,6 +224,8 @@ void rotate_figure(field *fld)
         }
     }
     *player_figure->shape = shape;
+    player_figure->center_x = saved_x;
+    player_figure->center_y = saved_y;
 }
 
 void force_figure_down(field *fld)
