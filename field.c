@@ -77,6 +77,7 @@ void init_field(field *fld, int x, int y)
 
 void destroy_field(field *fld)
 {
+    free(fld->figure->shape);
     free(fld->figure);
     fld->figure = NULL;
 
@@ -143,6 +144,7 @@ static void save_player_figure(field *fld)
 
 void update_player_figure(field *fld)
 {
+    free(fld->figure->shape);
     add_player_figure(fld);
     add_next_figure(fld->next_figures);
 }
@@ -181,7 +183,6 @@ void move_figure(field *fld, int dx, int dy)
         move_player_figure(fig, -dx, -dy);
         if (dx == 0) {
             save_player_figure(fld);
-            free(fld->figure->shape);
             update_player_figure(fld);
             draw_field(fld);
         }
@@ -229,7 +230,6 @@ void force_figure_down(field *fld)
     hide_figure(fld); 
     fig->center_y = fig->shadow_center_y;
     save_player_figure(fld);
-    free(fld->figure->shape);
     update_player_figure(fld);
     show_figure(fld);
     draw_field(fld);
