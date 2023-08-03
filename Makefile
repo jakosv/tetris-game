@@ -1,5 +1,5 @@
 PROG = tetris
-CFLAGS = -Wall -g -ansi  -pedantic
+CFLAGS = -Wall -g -ansi -pedantic
 LDFLAGS = -lncurses
 OBJMODULES = tetris.o field.o figure_shape.o figures_queue.o time_utils.o\
 			 colors.o
@@ -10,7 +10,7 @@ OBJMODULES = tetris.o field.o figure_shape.o figures_queue.o time_utils.o\
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(PROG): main.c $(OBJMODULES)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) 
 
 clean:
 	rm $(PROG) *.o
