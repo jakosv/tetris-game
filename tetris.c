@@ -73,18 +73,6 @@ void init_tetris(tetris_t *game)
     init_colors();
 }
 
-static int is_game_over(tetris_t *game)
-{
-    int x, y;
-    x = game->figure.x;
-    y = game->figure.y;
-
-    return check_shape_collisions(x, y, game->figure.shape, 
-
-
-                                  game->figure.field);
-}
-
 static void handle_key_up(tetris_t *game)
 {
     rotate_figure(&game->figure); 

@@ -12,19 +12,9 @@ static int calc_shadow_y(int figure_x, int figure_y, const shape_t *shape,
     int x, y;
     x = figure_x;
     y = figure_y + 1;
-    for (;; y++) {
-        int i;
-        for (i = 0; i < shape_blocks_cnt; i++) {
-            int block_x, block_y;
-            block_x = x + shape->blocks[i].x;
-            block_y = y + shape->blocks[i].y;
-            if (!check_field_coords(block_x, block_y) ||
-                !is_field_block_empty(block_x, block_y, field))
-            {
-                return y - 1;
-            }
-        }
-    }
+    for (;; y++)
+        if (check_shape_collisions(x, y, shape, field))
+            return y - 1;
     return -1;
 }
 
@@ -159,11 +149,7 @@ static void resolve_collisions(figure_t *figure, int *new_x, int *new_y)
             resolve_field_bounds_collision(x + block_x, y + block_y, &x, &y);
 
         if (!is_field_block_empty(x + block_x, y + block_y, figure->field))
-        {
-            resolve_block_collision(figure->shape->blocks[i].x, 
-                                    figure->shape->blocks[i].y,
-                                    &x, &y);
-        }
+            resolve_block_collision(block_x, block_y, &x, &y);
     }
 
     *new_x = x;
