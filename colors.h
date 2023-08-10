@@ -3,7 +3,7 @@
 
 #include <ncurses.h>
 
-enum { color_count = 6 };
+enum { DEFAULT_COLOR = 0, colors_count = 6 };
 
 extern int work_bw;
 

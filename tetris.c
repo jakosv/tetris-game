@@ -6,6 +6,7 @@
 
 #include "tetris.h"
 #include "field.h"
+#include "figure.h"
 #include "time_utils.h"
 #include "colors.h"
 
@@ -17,7 +18,35 @@ enum { figure_move_interval = 1000 };
 const double start_game_speed = 1.0;
 const double game_speed_increase = 0.5;
 
-static void init_ncurses(tetris *game)
+/*
+enum { next_figures_count = 3 };
+enum { next_figure_text_y = 2 };
+enum { next_figure_y = 4, next_figures_padding = 3 };
+
+static void add_next_figure(fqueue *next_figures)
+{
+    figure_shape *new_shape;
+    new_shape = generate_figure_shape();
+    fqueue_add(new_shape, next_figures);
+}
+
+static void draw_next_figures(const field *fld)
+{
+    int row;
+    struct fqueue_item *tmp;
+    mvprintw(fld->y + next_figure_text_y, 
+             fld->x + game_field_width + 1, "Next");
+    row = next_figure_y + fld->y;
+    for (tmp = fld->next_figures->first; tmp; tmp = tmp->next) {
+        int x;
+        x = fld->x + game_field_width + (fwidth - game_field_width) / 2;
+        draw_figure_shape(x, row, fblock, tmp->data);
+        row += next_figures_padding;
+    }
+}
+*/
+
+static void init_ncurses(tetris_t *game)
 {
     int row, col;
     initscr();
@@ -31,44 +60,81 @@ static void init_ncurses(tetris *game)
     game->win_width = col;
 }
 
-void init_tetris(tetris *game)
+void init_tetris(tetris_t *game)
 {
     init_ncurses(game);
     init_field(&game->field, 
-               (game->win_width-fwidth)/2, (game->win_height-fheight)/2);  
+               (game->win_width - field_width) / 2, 
+               (game->win_height - field_height) / 2);  
+    init_figure(&game->figure, get_random_shape(), &game->field);
     game->score = 0;
     game->speed = start_game_speed;
+    game->game_over = 0;
     init_colors();
 }
 
-static int is_game_over(tetris *game)
+static int is_game_over(tetris_t *game)
 {
-    return game->field.blocks[figure_start_y][figure_start_x] == fblock;
+    int x, y;
+    x = game->figure.x;
+    y = game->figure.y;
+
+    return check_shape_collisions(x, y, game->figure.shape, 
+                                  game->figure.field);
 }
 
-static void handle_key_up(tetris *game)
+static void handle_key_up(tetris_t *game)
 {
-    hide_figure(&game->field);
-    rotate_figure(&game->field); 
-    show_figure(&game->field);
+    rotate_figure(&game->figure); 
 }
 
-static int is_row_full(int row, const field *fld)
+static void handle_key_space(tetris_t *game)
+{
+    force_figure_down(&game->figure);
+}
+
+static int is_correct_window_size(int height, int width)
+{
+    return (height >= field_height + 2) && (width >= field_width + 2);
+}
+
+static void handle_resize(tetris_t *game)
+{
+    int row, col;
+    getmaxyx(stdscr, row, col);
+    if (!is_correct_window_size(row, col)) {
+        game->game_over = 1;
+        return;
+    }
+    game->win_width = col;
+    game->win_height = row;
+    reinit_field(&game->field, 
+                (game->win_width - field_width) / 2, 
+                (game->win_height - field_height) / 2);  
+    clear();
+}
+
+static void update_figure(tetris_t *game, figure_t *figure)
+{
+    reinit_figure(figure, get_random_shape());
+}
+
+static int is_row_full(int row, const field_t *field)
 {
     int i;
-    for (i = 1; i < game_field_width - 1; i++)
-        if (fld->blocks[row][i] == fempty)
+    for (i = 0; i < field_width; i++)
+        if (field->blocks[row][i].ch != figure_block_char)
             return 0;
     return 1;
 }
 
-static int *get_full_rows(tetris *game, int *count)
+static int *get_full_rows(tetris_t *game, int *count)
 {
     int i;
-    int arr[fheight-2];
+    int arr[field_height];
     int *rows;
     *count = 0;
-    for (i = fheight - 2; i >= 2; i--)
+    for (i = field_height-1; i >= 1; i--)
         if (is_row_full(i, &game->field)) {
             arr[*count] = i;
             ++(*count);
@@ -81,15 +147,15 @@ static int *get_full_rows(tetris *game, int *count)
     return rows;
 }
 
-static void move_top_rows_down(int start_row, field *fld)
+static void move_top_rows_down(int start_row, field_t *field)
 {
     int i, j;
-    for (i = start_row; i >= 2; i--)
-        for (j = 1; j < game_field_width - 1; j++)
-            fld->blocks[i][j] = fld->blocks[i-1][j];
+    for (i = start_row; i >= 1; i--)
+        for (j = 0; j < field_width; j++)
+            field->blocks[i][j] = field->blocks[i-1][j];
 }
 
-static void remove_full_rows(int *rows, int count, tetris *game)
+static void remove_full_rows(int *rows, int count, tetris_t *game)
 {
     game->score += count * count;
     game->speed += game_speed_increase;
@@ -101,69 +167,88 @@ static void remove_full_rows(int *rows, int count, tetris *game)
     rows = NULL;
 }
 
-int check_figure_time(tetris *game)
+static int check_figure_time(tetris_t *game)
 {
     struct timeval now;
     long msec_between;
     gettimeofday(&now, NULL);
     msec_between = 
-        milliseconds_between(&game->field.figure->last_move_time, &now);
+        milliseconds_between(&game->figure.last_move_time, &now);
     return (long)(1.0*msec_between * game->speed) >= figure_move_interval; 
 }
 
-static void show_score(const tetris *game)
+static void check_full_rows(tetris_t *game)
+{
+    int full_rows_cnt;
+    int *full_rows;
+    full_rows = NULL;
+    full_rows = get_full_rows(game, &full_rows_cnt);
+    if (full_rows_cnt > 0)
+        remove_full_rows(full_rows, full_rows_cnt, game);
+}
+
+static void show_score(const tetris_t *game)
 {
     enum { score_str_max_len = 10 };
     char buf[score_str_max_len];
     int x, y;
     sprintf(buf, "Score: %d", game->score);
-    x = game->field.x + (fwidth - strlen(buf)) / 2;
+    x = game->field.x + (field_width - strlen(buf)) / 2;
     y = game->field.y - 1;
     mvprintw(y, x, "%s", buf);
 }
 
-void start_tetris(tetris *game)
+void start_tetris(tetris_t *game)
 {
-    int key, full_rows_cnt;
-    int *full_rows;
-    full_rows = NULL;
+    int key, figure_finish;
+
+    show_figure(&game->figure);
+    show_field(&game->field);
     show_score(game);
-    draw_field(&game->field);
+
+    figure_finish = 0;
     while((key = getch()) != key_exit) {
         switch (key) {
         case KEY_UP:
             handle_key_up(game);
             break;
         case KEY_DOWN:
-            move_figure(&game->field, 0, 1);
+            figure_finish = move_figure(&game->figure, 0, 1);
             break;
         case KEY_LEFT:
-            move_figure(&game->field, -1, 0);
+            move_figure(&game->figure, -1, 0);
             break;
         case KEY_RIGHT:
-            move_figure(&game->field, 1, 0);
+            move_figure(&game->figure, 1, 0);
             break;
         case key_space:
-            force_figure_down(&game->field);
+            handle_key_space(game);
+            figure_finish = 1;
+            break;
         case KEY_RESIZE:
+            handle_resize(game);
             break;
         default:
             if (check_figure_time(game))
-                move_figure(&game->field, 0, 1);
+                figure_finish = move_figure(&game->figure, 0, 1);
         }
-        if (is_game_over(game)) {
-            timeout(-1);
-            key = getch();
+
+        if (figure_finish) {
+            check_full_rows(game);
+            update_figure(game, &game->figure);
+            game->game_over = is_game_over(game);
+            show_figure(&game->figure);
+            figure_finish = 0;
+        }
+
+        if (game->game_over)
             break;
-        }
-        full_rows = get_full_rows(game, &full_rows_cnt);
-        if (full_rows_cnt > 0) {
-            remove_full_rows(full_rows, full_rows_cnt, game);
-            show_score(game);
-            update_player_figure(&game->field);
-            draw_field(&game->field);
-        }
+
+        show_field(&game->field);
+        show_score(game);
     }
-    destroy_field(&game->field);
+
+    destroy_figure(&game->figure);
+
     endwin();
 }

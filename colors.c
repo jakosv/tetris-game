@@ -4,11 +4,10 @@
 
 int work_bw = 1;
 
-static const int colors[color_count] = {
+static const int colors[colors_count] = {
     COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
     COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN
 };
-
 
 void init_colors()
 {
@@ -17,6 +16,6 @@ void init_colors()
     if (!work_bw)
         start_color();
     use_default_colors();
-    for (i = 0; i < color_count; i++)
-        init_pair(i + 1, colors[i], -1);
+    for (i = 0; i < colors_count; i++)
+        init_pair(i + 1, colors[i], DEFAULT_COLOR);
 }
