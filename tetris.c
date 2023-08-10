@@ -80,6 +80,8 @@ static int is_game_over(tetris_t *game)
     y = game->figure.y;
 
     return check_shape_collisions(x, y, game->figure.shape, 
+
+
                                   game->figure.field);
 }
 
@@ -117,6 +119,10 @@ static void handle_resize(tetris_t *game)
 static void update_figure(tetris_t *game, figure_t *figure)
 {
     reinit_figure(figure, get_random_shape());
+    game->game_over = check_shape_collisions(figure->x, figure->y, 
+                                             game->figure.shape, 
+                                             game->figure.field);
+    show_figure(&game->figure);
 }
 
 static int is_row_full(int row, const field_t *field)
@@ -207,7 +213,7 @@ void start_tetris(tetris_t *game)
     show_score(game);
 
     figure_finish = 0;
-    while((key = getch()) != key_exit) {
+    while ((key = getch()) != key_exit && !game->game_over) {
         switch (key) {
         case KEY_UP:
             handle_key_up(game);
@@ -236,16 +242,16 @@ void start_tetris(tetris_t *game)
         if (figure_finish) {
             check_full_rows(game);
             update_figure(game, &game->figure);
-            game->game_over = is_game_over(game);
-            show_figure(&game->figure);
             figure_finish = 0;
         }
 
-        if (game->game_over)
-            break;
-
         show_field(&game->field);
         show_score(game);
+    }
+
+    if (game->game_over) {
+        timeout(-1);
+        key = getch();
     }
 
     destroy_figure(&game->figure);

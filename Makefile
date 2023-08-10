@@ -1,7 +1,7 @@
 PROG = tetris
 CFLAGS = -Wall -g -ansi -pedantic
 LDFLAGS = -lncurses
-OBJMODULES = tetris.o field.o field_block.o figure.o shape.o figures_queue.o\
+OBJMODULES = tetris.o field.o field_block.o figure.o shape.o shapes_queue.o\
 			 time_utils.o colors.o
 
 .PHONY: clean
