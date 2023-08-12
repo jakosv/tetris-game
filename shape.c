@@ -93,8 +93,8 @@ int check_shape_collisions(int x, int y, const shape_t *shape,
         int block_x, block_y;
         block_x = x + shape->blocks[i].x;
         block_y = y + shape->blocks[i].y;
-        if (!is_field_block_empty(block_x, block_y, field) ||
-            !check_field_coords(block_x, block_y)) 
+        if (!check_field_coords(block_x, block_y, field) ||
+            !is_field_block_empty(block_x, block_y, field)) 
         {
             return 1;
         }

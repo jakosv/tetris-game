@@ -20,8 +20,8 @@ static int calc_shadow_y(int figure_x, int figure_y, const shape_t *shape,
 
 void init_figure(figure_t *figure, shape_t *shape, field_t *field)
 {
-    figure->x = figure_start_x;
-    figure->y = figure_start_y;
+    figure->x = field->width / 2;
+    figure->y = 0;
     figure->shadow_y = calc_shadow_y(figure->x, figure->y, shape, field);
     figure->shape = shape;
     figure->field = field;
@@ -94,7 +94,8 @@ int move_figure(figure_t *figure, int dx, int dy)
 }
 
 static void resolve_field_bounds_collision(int block_x, int block_y, 
-                                           int *figure_x, int *figure_y)
+                                           int *figure_x, int *figure_y,
+                                           const field_t *field)
 {
     int x, y;
 
@@ -103,13 +104,13 @@ static void resolve_field_bounds_collision(int block_x, int block_y,
 
     if (block_x < 0)
         x += abs(block_x);
-    else if (block_x >= field_width)
-        x = x - (block_x - field_width + 1);
+    else if (block_x >= field->width)
+        x = x - (block_x - field->width + 1);
 
     if (block_y < 0)
         y += abs(block_y);
-    else if (block_y >= field_height)
-        y = y - (block_y - field_height + 1);
+    else if (block_y >= field->height)
+        y = y - (block_y - field->height + 1);
 
     *figure_x = x;
     *figure_y = y;
@@ -145,8 +146,9 @@ static void resolve_collisions(figure_t *figure, int *new_x, int *new_y)
         if (block_x == 0 && block_y == 0)
             continue;
 
-        if (!check_field_coords(x + block_x, y + block_y))
-            resolve_field_bounds_collision(x + block_x, y + block_y, &x, &y);
+        if (!check_field_coords(x + block_x, y + block_y, figure->field))
+            resolve_field_bounds_collision(x + block_x, y + block_y, &x, &y,
+                                           figure->field);
 
         if (!is_field_block_empty(x + block_x, y + block_y, figure->field))
             resolve_block_collision(block_x, block_y, &x, &y);

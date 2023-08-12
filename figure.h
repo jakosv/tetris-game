@@ -7,7 +7,6 @@
 #include "field.h"
 
 
-enum { figure_start_x = field_width / 2, figure_start_y = 0 };
 enum { figure_block_char = '#', shadow_block_char = '.' };
 
 
