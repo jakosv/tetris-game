@@ -26,8 +26,9 @@ const double game_speed_increase = 0.5;
 
 static void get_game_field_coords(const tetris_t *game, int *x, int *y)
 {
-    *x = (game->win_width - (field_width + next_shapes_field_width + 2)) / 2;
-    *y = (game->win_height - field_height) / 2;
+    *x = 
+        (game->win_width - (field_width + next_shapes_field_width + 2)) / 2;
+    *y = (game->win_height - field_height) / 2 + 1;
 }
 
 static void init_next_shapes(tetris_t *game)
@@ -45,6 +46,13 @@ static void init_next_shapes(tetris_t *game)
     for (i = 0; i < next_shapes_count; i++)
         sq_add(get_random_shape(), &game->next_shapes);
 }
+
+static int is_correct_window_size(int height, int width)
+{
+    return (height >= field_height + 3) && 
+           (width >= field_width + next_shapes_field_width + 2);
+}
+
 
 static void init_ncurses(tetris_t *game)
 {
@@ -87,12 +95,6 @@ static void handle_key_space(tetris_t *game)
     force_figure_down(&game->figure);
 }
 
-static int is_correct_window_size(int height, int width)
-{
-    return (height >= field_height + 2) && 
-           (width >= field_width + next_shapes_field_width + 2);
-}
-
 static void show_next_shapes(tetris_t *game)
 {
     int row;
@@ -113,7 +115,7 @@ static void show_next_shapes(tetris_t *game)
     }
 
     show_field(field);
-    mvprintw(field->y + next_shape_text_y, field->x + 1, "Next:");
+    mvprintw(field->y - 2, field->x + 1, "Next:");
 }
 
 
@@ -225,7 +227,7 @@ static void show_score(const tetris_t *game)
     int x, y;
     sprintf(buf, "Score: %d", game->score);
     x = game->field.x + (field_width - strlen(buf)) / 2;
-    y = game->field.y - 1;
+    y = game->field.y - 2;
     mvprintw(y, x, "%s", buf);
 }
 
@@ -240,6 +242,11 @@ static void destroy_tetris(tetris_t *game)
 void start_tetris(tetris_t *game)
 {
     int key, figure_finish;
+
+    if (!is_correct_window_size(game->win_height, game->win_width)) {
+        endwin();
+        return;
+    }
 
     show_figure(&game->figure);
     show_field(&game->field);
